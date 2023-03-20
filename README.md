@@ -1,7 +1,7 @@
 # Description
 PoC XML File Digital Sign and Validator Tool
 
-## Sign a xml file
+## Sign a xml file
 A sample to sign a xml file, execute:
 
 ```
@@ -12,7 +12,7 @@ A sample to sign a xml file, execute:
  -f: the xml file to be signed
  -d: destination xml signed file 
  
-## Validate a xml file
+## Validate a xml file
 A sample to validate a xml file, execute:
 
 ```

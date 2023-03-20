@@ -9,7 +9,7 @@ A sample to sign a xml file, execute:
  ```
  
  **where**: 
- * f: the xml file to be signed
+ * -f: the xml file to be signed
  * -d: destination xml signed file 
  
 ## Validate a xml file

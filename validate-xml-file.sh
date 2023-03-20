@@ -26,4 +26,5 @@ then
    helpFunction
 fi
 
+# Execute the tool
 mvn spring-boot:run -Dspring-boot.run.arguments="--action=validate --file=$file"

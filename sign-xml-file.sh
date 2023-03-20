@@ -29,4 +29,5 @@ then
    helpFunction
 fi
 
+# Execute the tool
 mvn spring-boot:run -Dspring-boot.run.arguments="--action=sign --file=$file --destination=$destination"

@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,51 +18,53 @@ public class PocDigitalCertificatesValidatorApplication implements CommandLineRu
 
 	private static Logger LOG = LoggerFactory.getLogger(PocDigitalCertificatesValidatorApplication.class);
 	  
+	@Value("${action:sign}")
+    private String action;
+	
+	@Value("${file:/Users/miguel/git/poc-digital-certificates-validator/target/classes/xml/employeesalary.xml}")
+    private String xmlFilePath;
+	
+	@Value("${destination:/Users/miguel/temp/result.xml}")
+    private String destnSignedXmlFilePath;
+	
 	public static void main(String[] args) {
 		SpringApplication.run(PocDigitalCertificatesValidatorApplication.class, args);
 	}
 
 	@Override
 	public void run(String... args) {
-		LOG.info("EXECUTING : command line runner");
+		LOG.info("EXECUTING : command line runner with these parameters");
 	 
 	    for (int i = 0; i < args.length; ++i) {
 	    	LOG.info("args[{}]: {}", i, args[i]);
 	    }
-
-    	
-	    // Validate signed file
-	    boolean isValid = false;
 	    
 	    try {
+		    boolean isValid = false;
+		    
 	    	// get private key
 	    	URL privatekeyResource = PocDigitalCertificatesValidatorApplication.class.getResource("/keys/privatekey.key");
 	    	String privatekeFilePath = Paths.get(privatekeyResource.toURI()).toFile().toPath().toString();
 
 	    	// get public key
 	    	URL publickeyResource = PocDigitalCertificatesValidatorApplication.class.getResource("/keys/publickey.key");
-	    	String pubicKeyFilePath = Paths.get(publickeyResource.toURI()).toFile().toPath().toString();
+	    	String publicKeyFilePath = Paths.get(publickeyResource.toURI()).toFile().toPath().toString();
+
+	    		    				    	
+	    	if (action.equals("sign")) 		    	
+	    		// sign the xml file and save
+	    		XmlDigitalSignatureGenerator.generateXMLDigitalSignature(xmlFilePath, destnSignedXmlFilePath, privatekeFilePath, publicKeyFilePath);
+	    	else
+	    		// validate the xml signed file
+	    		isValid = XmlDigitalSignatureVerifier.isXmlDigitalSignatureValid(xmlFilePath, publicKeyFilePath);
 	    	
-	    	// get plain xml file
-	    	URL xmlFileResource = PocDigitalCertificatesValidatorApplication.class.getResource("/xml/employeesalary.xml");
-	    	String xmlFilePath = Paths.get(xmlFileResource.toURI()).toFile().toPath().toString();
-	    	
-	    	// get destination folder for the signed file
-	    	String xmlFileDestinationPath = "/Users/miguel/temp/result.xml";
-	    				    	
-	    	// validate file signed using the public key
-	    	XmlDigitalSignatureGenerator.generateXMLDigitalSignature(xmlFilePath, xmlFileDestinationPath, privatekeFilePath, pubicKeyFilePath);
-	    	
-	    	// validate file signed using the public key
-	    	isValid = XmlDigitalSignatureVerifier.isXmlDigitalSignatureValid(xmlFileDestinationPath, pubicKeyFilePath);
+		    if(isValid)
+		    	LOG.info("File {} is valid", xmlFilePath);
+		    else
+		    	LOG.error("File {} is NOT valid", xmlFilePath);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	    
-	    if(isValid)
-	    	LOG.info("File validated");
-	    else
-	    	LOG.error("File not validated");
 	}
 }

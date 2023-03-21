@@ -46,8 +46,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 /**
- * This class is used to provide convenient methods to digitally sign an XML
- * document.
+ * This class is used to provide convenient methods to digitally sign an XML document.
  */
 public class XmlDigitalSignatureGenerator {
 
@@ -149,12 +148,10 @@ public class XmlDigitalSignatureGenerator {
         
         try {
             ref = xmlSigFactory.newReference("", xmlSigFactory.newDigestMethod(DigestMethod.SHA256, null),
-                    Collections.singletonList(xmlSigFactory.newTransform(Transform.ENVELOPED,
-                    (TransformParameterSpec) null)), null, null);
+                    Collections.singletonList(xmlSigFactory.newTransform(Transform.ENVELOPED, (TransformParameterSpec) null)), null, null);
             
             signedInfo = xmlSigFactory.newSignedInfo(
-                    xmlSigFactory.newCanonicalizationMethod(CanonicalizationMethod.INCLUSIVE,
-                    (C14NMethodParameterSpec) null),
+                    xmlSigFactory.newCanonicalizationMethod(CanonicalizationMethod.INCLUSIVE, (C14NMethodParameterSpec) null),
                     xmlSigFactory.newSignatureMethod(SignatureMethod.RSA_SHA256, null),
                     Collections.singletonList(ref));
         } catch (NoSuchAlgorithmException ex) {

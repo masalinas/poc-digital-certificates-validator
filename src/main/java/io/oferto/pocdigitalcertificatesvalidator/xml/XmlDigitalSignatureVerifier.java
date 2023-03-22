@@ -10,10 +10,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.PublicKey;
+import java.util.Base64;
 import java.util.List;
 
-import javax.xml.crypto.Data;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
+import javax.xml.crypto.dsig.DigestMethod;
 import javax.xml.crypto.dsig.Reference;
 import javax.xml.crypto.dsig.XMLSignature;
 import javax.xml.crypto.dsig.XMLSignatureFactory;
@@ -27,6 +28,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.xml.security.Init;
+import org.apache.xml.security.c14n.Canonicalizer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -110,7 +113,7 @@ public class XmlDigitalSignatureVerifier {
         XMLSignatureFactory fac = XMLSignatureFactory.getInstance("DOM");
         
         // Doing the actual canonicalization
-        CanonicalizationMethod canonicalizationMethod = fac.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE, (C14NMethodParameterSpec)null);
+        //CanonicalizationMethod canonicalizationMethod = fac.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE, (C14NMethodParameterSpec)null);
         		
         // Create a DOMValidateContext and specify a KeyValue KeySelector and document context
         DOMValidateContext valContext = new DOMValidateContext
@@ -124,14 +127,32 @@ public class XmlDigitalSignatureVerifier {
         String digestMethod = reference.getDigestMethod().getAlgorithm();
         byte[] digestValue = reference.getDigestValue();
     		   
+        System.out.printf("Digest Value: %s %n", Base64.getEncoder().encodeToString(digestValue));
+        
         //remove signature node from DOM
         nl.item(0).getParentNode().removeChild(nl.item(0));
         
         // save xml file without the signature
         saveNode(doc);
         
+        // Doing the actual canonicalization
+        byte[] canonicalizeResult;
+        Init.init();
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+			final Canonicalizer canonicalizer = Canonicalizer.getInstance(CanonicalizationMethod.INCLUSIVE);
+			canonicalizer.canonicalize(asByteArray(doc), baos, true);
+			
+			canonicalizeResult = baos.toByteArray();
+		} catch (Exception e) {
+			throw new Exception("Cannot canonicalize the binaries", e);
+		}
+                
         // digest the document without signature
-        byte[] result = MessageDigest.getInstance("SHA-256").digest(asByteArray(doc));
+        //byte[] result = MessageDigest.getInstance("SHA-256").digest(asByteArray(doc));
+        byte[] result = MessageDigest.getInstance("SHA-256").digest(canonicalizeResult);
+        
+        // trace the digest base64 string result
+        System.out.printf("Digest File Document: %s", Base64.getEncoder().encodeToString(result));
         
         // compare digests
         validFlag = MessageDigest.isEqual(digestValue, result);

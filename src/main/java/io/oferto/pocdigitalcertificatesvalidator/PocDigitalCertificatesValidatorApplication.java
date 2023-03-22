@@ -62,6 +62,9 @@ public class PocDigitalCertificatesValidatorApplication implements CommandLineRu
 		    	LOG.info("File {} is valid", xmlFilePath);
 		    else
 		    	LOG.error("File {} is NOT valid", xmlFilePath);
+		    
+    		XmlDigitalSignatureVerifier.isXmlDigestValid(xmlFilePath);
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

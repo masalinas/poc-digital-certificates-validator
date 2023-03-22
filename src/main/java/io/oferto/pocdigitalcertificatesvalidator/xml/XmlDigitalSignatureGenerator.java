@@ -147,7 +147,8 @@ public class XmlDigitalSignatureGenerator {
         SignedInfo signedInfo = null;
         
         try {
-            ref = xmlSigFactory.newReference("", xmlSigFactory.newDigestMethod(DigestMethod.SHA256, null),
+            ref = xmlSigFactory.newReference("", 
+            		xmlSigFactory.newDigestMethod(DigestMethod.SHA256, null),
                     Collections.singletonList(xmlSigFactory.newTransform(Transform.ENVELOPED, (TransformParameterSpec) null)), null, null);
             
             signedInfo = xmlSigFactory.newSignedInfo(

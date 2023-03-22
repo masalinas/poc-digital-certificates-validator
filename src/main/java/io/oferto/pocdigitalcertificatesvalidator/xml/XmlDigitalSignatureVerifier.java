@@ -1,22 +1,35 @@
 package io.oferto.pocdigitalcertificatesvalidator.xml;
 
 import io.oferto.pocdigitalcertificatesvalidator.crypto.KryptoUtil;
+import io.oferto.pocdigitalcertificatesvalidator.crypto.KeyValueKeySelector;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-
+import java.security.MessageDigest;
 import java.security.PublicKey;
+import java.util.List;
 
+import javax.xml.crypto.Data;
+import javax.xml.crypto.dsig.CanonicalizationMethod;
+import javax.xml.crypto.dsig.Reference;
 import javax.xml.crypto.dsig.XMLSignature;
 import javax.xml.crypto.dsig.XMLSignatureFactory;
 import javax.xml.crypto.dsig.dom.DOMValidateContext;
+import javax.xml.crypto.dsig.spec.C14NMethodParameterSpec;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
 import org.xml.sax.SAXException;
 
 /**
@@ -76,4 +89,99 @@ public class XmlDigitalSignatureVerifier {
         
         return validFlag;
     }
+    
+    /**
+     * Method used to verify the XML digest
+     * @param signedXmlFilePath
+     * @return true or false
+     * @throws Exception 
+     */
+    public static boolean isXmlDigestValid(String signedXmlFilePath) throws Exception {
+        boolean validFlag = false;
+        
+        Document doc = getXmlDocument(signedXmlFilePath);
+        NodeList nl = doc.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
+        
+        if (nl.getLength() == 0) {
+            throw new Exception("No XML Digital Signature Found, document is discarded");
+        }
+        
+        // document containing the XMLSignature
+        XMLSignatureFactory fac = XMLSignatureFactory.getInstance("DOM");
+        
+        // Doing the actual canonicalization
+        CanonicalizationMethod canonicalizationMethod = fac.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE, (C14NMethodParameterSpec)null);
+        		
+        // Create a DOMValidateContext and specify a KeyValue KeySelector and document context
+        DOMValidateContext valContext = new DOMValidateContext
+            (new KeyValueKeySelector(), nl.item(0));
+
+        // unmarshal the XMLSignature
+        XMLSignature signature = fac.unmarshalXMLSignature(valContext);
+        List<Reference> references = signature.getSignedInfo().getReferences();
+        Reference reference = references.get(0);
+        
+        String digestMethod = reference.getDigestMethod().getAlgorithm();
+        byte[] digestValue = reference.getDigestValue();
+    		   
+        //remove signature node from DOM
+        nl.item(0).getParentNode().removeChild(nl.item(0));
+        
+        // save xml file without the signature
+        saveNode(doc);
+        
+        // digest the document without signature
+        byte[] result = MessageDigest.getInstance("SHA-256").digest(asByteArray(doc));
+        
+        // compare digests
+        validFlag = MessageDigest.isEqual(digestValue, result);
+        
+        return validFlag;
+    }
+    
+    public static void saveNode(Node node) {
+        try {
+        	// write dom document to a file
+            try (FileOutputStream output =
+                         new FileOutputStream("/Users/miguel/temp/igG_XM_Payload.xml")) {
+                
+            	// Remove unwanted whitespaces
+                //node.normalize();
+            	
+            	TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                Transformer transformer = transformerFactory.newTransformer();
+                DOMSource source = new DOMSource(node);
+                StreamResult result = new StreamResult(output);
+
+                transformer.transform(source, result);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+     
+    /**
+     * Transforms a DOM document to a byte array.
+     * @param doc DOM document
+     * @return byte array
+     * @throws javax.xml.transform.TransformerException
+     * @throws InvalidCanonicalizerException 
+     */
+    public static byte[] asByteArray(Node document) throws TransformerException {
+    	TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                
+        Transformer transformer = transformerFactory.newTransformer();
+        
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        StreamResult result = new StreamResult(bout);
+        
+        DOMSource source = new DOMSource(document);
+    	    	
+        transformer.transform(source, result);
+            	
+        return bout.toByteArray();
+    }
+ 
 }

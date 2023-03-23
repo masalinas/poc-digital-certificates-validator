@@ -129,7 +129,7 @@ public class XmlDigitalSignatureVerifier {
     		   
         System.out.printf("Digest Value: %s %n", Base64.getEncoder().encodeToString(digestValue));
         
-        //remove signature node from DOM
+        //remove signature node from DOM ??????
         nl.item(0).getParentNode().removeChild(nl.item(0));
         
         // save xml file without the signature

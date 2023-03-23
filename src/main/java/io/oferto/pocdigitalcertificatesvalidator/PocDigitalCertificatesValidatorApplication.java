@@ -49,22 +49,25 @@ public class PocDigitalCertificatesValidatorApplication implements CommandLineRu
 	    	// get public key
 	    	URL publickeyResource = PocDigitalCertificatesValidatorApplication.class.getResource("/keys/publickey.key");
 	    	String publicKeyFilePath = Paths.get(publickeyResource.toURI()).toFile().toPath().toString();
-
-	    		    				    	
-	    	if (action.equals("sign")) 		    	
-	    		// sign the xml file and save
-	    		XmlDigitalSignatureGenerator.generateXMLDigitalSignature(xmlFilePath, destnSignedXmlFilePath, privatekeFilePath, publicKeyFilePath);
-	    	else
-	    		// validate the xml signed file
-	    		isValid = XmlDigitalSignatureVerifier.isXmlDigitalSignatureValid(xmlFilePath, publicKeyFilePath);
 	    	
-		    if(isValid)
-		    	LOG.info("File {} is valid", xmlFilePath);
-		    else
-		    	LOG.error("File {} is NOT valid", xmlFilePath);
-		    
-    		XmlDigitalSignatureVerifier.isXmlDigestValid(xmlFilePath);
-
+	    	if (action.equals("sign"))
+	    		XmlDigitalSignatureGenerator.generateXMLDigitalSignature(xmlFilePath, destnSignedXmlFilePath, privatekeFilePath, publicKeyFilePath);
+	    	else if (action.equals("digest")) {
+	    		isValid = XmlDigitalSignatureVerifier.isXmlDigestValid(xmlFilePath);
+	    		
+			    if(isValid)
+			    	LOG.info("File {} has digest valid", xmlFilePath);
+			    else
+			    	LOG.error("File {} has digest NOT valid", xmlFilePath);
+	    	}
+	    	else {
+	    		isValid = XmlDigitalSignatureVerifier.isXmlDigitalSignatureValid(xmlFilePath, publicKeyFilePath);
+	    		
+			    if(isValid)
+			    	LOG.info("File {} has sign valid", xmlFilePath);
+			    else
+			    	LOG.error("File {} has sign NOT valid", xmlFilePath);
+	    	}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

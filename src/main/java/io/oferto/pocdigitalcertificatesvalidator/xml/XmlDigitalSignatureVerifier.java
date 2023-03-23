@@ -14,12 +14,10 @@ import java.util.Base64;
 import java.util.List;
 
 import javax.xml.crypto.dsig.CanonicalizationMethod;
-import javax.xml.crypto.dsig.DigestMethod;
 import javax.xml.crypto.dsig.Reference;
 import javax.xml.crypto.dsig.XMLSignature;
 import javax.xml.crypto.dsig.XMLSignatureFactory;
 import javax.xml.crypto.dsig.dom.DOMValidateContext;
-import javax.xml.crypto.dsig.spec.C14NMethodParameterSpec;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
@@ -162,10 +160,6 @@ public class XmlDigitalSignatureVerifier {
         	// write dom document to a file
             try (FileOutputStream output =
                          new FileOutputStream("/Users/miguel/temp/igG_XM_Payload.xml")) {
-                
-            	// Remove unwanted whitespaces
-                //node.normalize();
-            	
             	TransformerFactory transformerFactory = TransformerFactory.newInstance();
                 Transformer transformer = transformerFactory.newTransformer();
                 DOMSource source = new DOMSource(node);

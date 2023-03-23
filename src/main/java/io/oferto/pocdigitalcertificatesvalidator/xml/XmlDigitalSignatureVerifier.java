@@ -112,9 +112,6 @@ public class XmlDigitalSignatureVerifier {
         // document containing the XMLSignature
         XMLSignatureFactory fac = XMLSignatureFactory.getInstance("DOM");
         
-        // Doing the actual canonicalization
-        //CanonicalizationMethod canonicalizationMethod = fac.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE, (C14NMethodParameterSpec)null);
-        		
         // Create a DOMValidateContext and specify a KeyValue KeySelector and document context
         DOMValidateContext valContext = new DOMValidateContext
             (new KeyValueKeySelector(), nl.item(0));
